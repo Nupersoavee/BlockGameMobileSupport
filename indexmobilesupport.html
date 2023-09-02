@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: green;
+        }
+        #container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #cube {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: black;
+        }
+        #speedInput {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px;
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Added drop shadow */
+        }
+        .red-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+        }
+        .orange-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: orange;
+        }
+        .yellow-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: orange;
+        }
+        .light-green-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: lightgreen;
+        }
+        .light-blue-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: lightblue;
+        }
+        .cyan-block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: cyan; /* Added cyan block */
+        }
+        #pointsLabel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 20px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); /* Added text shadow */
+        }
+        #resetButton {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Added drop shadow */
+        }
+        /* ... (Your existing CSS styles) ... */
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="cube"></div>
+    </div>
+    <input type="number" id="speedInput" placeholder="Speed" min="1" value="5">
+    <div id="pointsLabel">Points: 0</div>
+    <button id="resetButton">Reset Points</button>
+    
+    <script>
+        const cube = document.getElementById('cube');
+        const container = document.getElementById('container');
+        const speedInput = document.getElementById('speedInput');
+        const pointsLabel = document.getElementById('pointsLabel');
+        const resetButton = document.getElementById('resetButton');
+        const redBlocks = [];
+        const orangeBlocks = [];
+        const yellowBlocks = [];
+        const lightGreenBlocks = [];
+        const lightBlueBlocks = [];
+        const cyanBlocks = [];
+        let points = 0;
+        let cubeX = window.innerWidth / 2 - cube.offsetWidth / 2;
+        let cubeY = window.innerHeight / 2 - cube.offsetHeight / 2;
+        let speed = 5;
+
+        function updateCubePosition() {
+            cube.style.left = cubeX + 'px';
+            cube.style.top = cubeY + 'px';
+        }
+
+        // Event listener for touch input on mobile devices
+        let touchStartX, touchStartY;
+
+        document.addEventListener('touchstart', function(event) {
+            touchStartX = event.touches[0].clientX;
+            touchStartY = event.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', function(event) {
+            const touchEndX = event.touches[0].clientX;
+            const touchEndY = event.touches[0].clientY;
+
+            // Calculate the distance moved by the touch
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            // Update the cube's position based on touch movement
+            cubeX += deltaX;
+            cubeY += deltaY;
+
+            // Ensure the cube stays within the container
+            cubeX = Math.max(0, Math.min(window.innerWidth - cube.offsetWidth, cubeX));
+            cubeY = Math.max(0, Math.min(window.innerHeight - cube.offsetHeight, cubeY));
+
+            // Update the cube's position and check for collisions
+            updateCubePosition();
+            checkCollisions();
+            checkOrangeCollisions();
+            checkYellowCollisions();
+            checkLightGreenCollisions();
+            checkLightBlueCollisions();
+            checkCyanCollisions();
+
+            // Update touch start coordinates for the next move event
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
+
+            // Prevent default touch behavior (scrolling, zooming, etc.)
+            event.preventDefault();
+        });
+
+               // Function to create a red block
+               function createRedBlock() {
+            const redBlock = document.createElement('div');
+            redBlock.className = 'red-block';
+            redBlock.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            redBlock.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            container.appendChild(redBlock);
+            redBlocks.push(redBlock);
+        }
+
+        // Function to create an orange block
+        function createOrangeBlock() {
+            const orangeBlock = document.createElement('div');
+            orangeBlock.className = 'orange-block';
+            orangeBlock.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            orangeBlock.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            container.appendChild(orangeBlock);
+            orangeBlocks.push(orangeBlock);
+        }
+
+        // Function to create a yellow block (colored orange)
+        function createYellowBlock() {
+            const yellowBlock = document.createElement('div');
+            yellowBlock.className = 'yellow-block';
+            yellowBlock.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            yellowBlock.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            container.appendChild(yellowBlock);
+            yellowBlocks.push(yellowBlock);
+        }
+
+        // Function to create a light green block
+        function createLightGreenBlock() {
+            const lightGreenBlock = document.createElement('div');
+            lightGreenBlock.className = 'light-green-block';
+            lightGreenBlock.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            lightGreenBlock.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            container.appendChild(lightGreenBlock);
+            lightGreenBlocks.push(lightGreenBlock);
+        }
+
+        // Function to create a light blue block
+        function createLightBlueBlock() {
+            const lightBlueBlock = document.createElement('div');
+            lightBlueBlock.className = 'light-blue-block';
+            lightBlueBlock.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            lightBlueBlock.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            container.appendChild(lightBlueBlock);
+            lightBlueBlocks.push(lightBlueBlock);
+        }
+
+        // Function to create a cyan block
+        function createCyanBlock() {
+            const cyanBlock = document.createElement('div');
+            cyanBlock.className = 'cyan-block';
+            cyanBlock.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+            cyanBlock.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+            container.appendChild(cyanBlock);
+            cyanBlocks.push(cyanBlock);
+        }
+
+        // Check for collisions with red blocks
+        function checkCollisions() {
+            for (let i = 0; i < redBlocks.length; i++) {
+                const redBlock = redBlocks[i];
+                const rect1 = cube.getBoundingClientRect();
+                const rect2 = redBlock.getBoundingClientRect();
+
+                if (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                ) {
+                    // Collision with a red block, remove it
+                    container.removeChild(redBlock);
+                    redBlocks.splice(i, 1);
+                    points++;
+                    updatePointsLabel();
+                }
+            }
+        }
+
+        // Check for collisions with orange blocks
+        function checkOrangeCollisions() {
+            for (let i = 0; i < orangeBlocks.length; i++) {
+                const orangeBlock = orangeBlocks[i];
+                const rect1 = cube.getBoundingClientRect();
+                const rect2 = orangeBlock.getBoundingClientRect();
+
+                if (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                ) {
+                    // Collision with an orange block, remove it and award 5+ points
+                    container.removeChild(orangeBlock);
+                    orangeBlocks.splice(i, 1);
+                    points += 5;
+                    updatePointsLabel();
+                }
+            }
+        }
+
+        // Check for collisions with yellow blocks (colored orange)
+        function checkYellowCollisions() {
+            for (let i = 0; i < yellowBlocks.length; i++) {
+                const yellowBlock = yellowBlocks[i];
+                const rect1 = cube.getBoundingClientRect();
+                const rect2 = yellowBlock.getBoundingClientRect();
+
+                if (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                ) {
+                    // Collision with a yellow block (colored orange), remove it and award 2+ points
+                    container.removeChild(yellowBlock);
+                    yellowBlocks.splice(i, 1);
+                    points += 2;
+                    updatePointsLabel();
+                }
+            }
+        }
+
+        // Check for collisions with light green blocks
+        function checkLightGreenCollisions() {
+            for (let i = 0; i < lightGreenBlocks.length; i++) {
+                const lightGreenBlock = lightGreenBlocks[i];
+                const rect1 = cube.getBoundingClientRect();
+                const rect2 = lightGreenBlock.getBoundingClientRect();
+
+                if (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                ) {
+                    // Collision with a light green block, remove it and award 25+ points
+                    container.removeChild(lightGreenBlock);
+                    lightGreenBlocks.splice(i, 1);
+                    points += 25;
+                    updatePointsLabel();
+                }
+            }
+        }
+
+        // Check for collisions with light blue blocks
+        function checkLightBlueCollisions() {
+            for (let i = 0; i < lightBlueBlocks.length; i++) {
+                const lightBlueBlock = lightBlueBlocks[i];
+                const rect1 = cube.getBoundingClientRect();
+                const rect2 = lightBlueBlock.getBoundingClientRect();
+
+                if (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                ) {
+                    // Collision with a light blue block, remove it and award 25+ points
+                    container.removeChild(lightBlueBlock);
+                    lightBlueBlocks.splice(i, 1);
+                    points += 25;
+                    updatePointsLabel();
+                }
+            }
+        }
+
+        // Check for collisions with cyan blocks
+        function checkCyanCollisions() {
+            for (let i = 0; i < cyanBlocks.length; i++) {
+                const cyanBlock = cyanBlocks[i];
+                const rect1 = cube.getBoundingClientRect();
+                const rect2 = cyanBlock.getBoundingClientRect();
+
+                if (
+                    rect1.left < rect2.right &&
+                    rect1.right > rect2.left &&
+                    rect1.top < rect2.bottom &&
+                    rect1.bottom > rect2.top
+                ) {
+                    // Collision with a cyan block, remove it and award 15+ points
+                    container.removeChild(cyanBlock);
+                    cyanBlocks.splice(i, 1);
+                    points += 15;
+                    updatePointsLabel();
+                }
+            }
+        }
+
+        // Update the points label
+        function updatePointsLabel() {
+            pointsLabel.textContent = `Points: ${points}`;
+        }
+
+        // Event listener for keyboard input
+        document.addEventListener('keydown', function(event) {
+            switch (event.key) {
+                case 'ArrowLeft':
+                case 'a':
+                    cubeX -= speed;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    cubeX += speed;
+                    break;
+                case 'ArrowUp':
+                case 'w':
+                    cubeY -= speed;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    cubeY += speed;
+                    break;
+            }
+
+            // Ensure the cube stays within the container
+            cubeX = Math.max(0, Math.min(window.innerWidth - cube.offsetWidth, cubeX));
+            cubeY = Math.max(0, Math.min(window.innerHeight - cube.offsetHeight, cubeY));
+
+            updateCubePosition();
+            checkCollisions();
+            checkOrangeCollisions();
+            checkYellowCollisions();
+            checkLightGreenCollisions();
+            checkLightBlueCollisions();
+            checkCyanCollisions(); /* Added check for cyan collisions */
+
+            // Save the points in local storage
+            localStorage.setItem('points', points.toString());
+        });
+
+        // Event listener for speed input change
+        speedInput.addEventListener('input', function() {
+            speed = parseInt(speedInput.value, 10);
+        });
+
+        // Load the saved points from local storage
+        const savedPoints = localStorage.getItem('points');
+        if (savedPoints) {
+            points = parseInt(savedPoints, 10);
+            updatePointsLabel();
+        }
+
+        // Event listener for reset button click
+        resetButton.addEventListener('click', function() {
+            const confirmReset = confirm('Are you sure you want to reset your points?');
+            if (confirmReset) {
+                points = 0;
+                updatePointsLabel();
+                localStorage.setItem('points', '0'); // Reset points in local storage
+            }
+        });
+
+        // Create red blocks at random intervals
+        setInterval(createRedBlock, 2000);
+
+        // Create orange blocks rarely
+        setInterval(createOrangeBlock, 10000);
+
+        // Create yellow blocks (colored orange) rarely
+        setInterval(createYellowBlock, 15000);
+
+        // Create light green blocks very rarely
+        setInterval(createLightGreenBlock, 100000);
+
+        // Create light blue blocks rarely
+        setInterval(createLightBlueBlock, 5000);
+
+        // Create cyan blocks rarely
+        setInterval(createCyanBlock, 2000); /* Added setInterval for cyan blocks */
+
+        // Initial position
+        updateCubePosition();
+
+        // ... (Your existing JavaScript code) ...
+    </script>
+</body>
+</html>
